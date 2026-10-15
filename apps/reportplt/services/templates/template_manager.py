@@ -4,10 +4,10 @@ import uuid
 from copy import deepcopy
 from typing import Optional, Dict, Any, List
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import transaction, models
 from django.utils import timezone
 from apps.reportplt.models import ReportTemplate, Report
-from apps.reportplt.constants import TemplateType, SectorType
+from apps.reportplt.constants import TemplateType
 from apps.reportplt.exceptions import TemplateNotFoundError, TemplateRenderError, ReportPermissionError
 from apps.reportplt.validators import TemplateValidator
 from apps.reportplt.services.security.report_rbac import ReportRBAC
@@ -25,13 +25,19 @@ class TemplateManager:
         errors = self.validator.validate()
         if errors:
             raise ValidationError(errors)
+        sector_obj = data.get('sector')
+        if isinstance(sector_obj, str):
+            from apps.tenant.models import OrganizationSector
+            sector_obj = OrganizationSector.objects.filter(
+                models.Q(code__iexact=sector_obj) | models.Q(name__iexact=sector_obj)
+            ).first()
         template = ReportTemplate(
             tenant_id=self.user.tenant_id if self.user else None,
             name=data.get('name'),
             description=data.get('description', ''),
             template_type=data.get('template_type'),
             category=data.get('category', ''),
-            sector=data.get('sector', 'all'),
+            sector=sector_obj,
             department=data.get('department', ''),
             owner=self.user,
             is_system=False,
@@ -75,7 +81,8 @@ class TemplateManager:
             if filters.get('category'):
                 qs = qs.filter(category=filters['category'])
             if filters.get('sector'):
-                qs = qs.filter(sector__in=[filters['sector'], 'all'])
+                sec = filters['sector']
+                qs = qs.filter(models.Q(sector__code__iexact=sec) | models.Q(sector__name__iexact=sec) | models.Q(sector__isnull=True))
             if filters.get('is_system') is not None:
                 qs = qs.filter(is_system=filters['is_system'])
             if filters.get('is_published') is not None:
@@ -173,9 +180,10 @@ class TemplateManager:
     def get_template_by_sector(self, sector: str, template_type: Optional[str] = None) -> Optional[ReportTemplate]:
         qs = ReportTemplate.objects.filter(
             tenant_id=self.user.tenant_id if self.user else None,
-            sector__in=[sector, 'all'],
             is_published=True
         )
+        if sector:
+            qs = qs.filter(models.Q(sector__code__iexact=sector) | models.Q(sector__name__iexact=sector) | models.Q(sector__isnull=True))
         if template_type:
             qs = qs.filter(template_type=template_type)
         return qs.order_by('-is_default', '-is_popular', '-created_at').first()
@@ -225,11 +233,13 @@ class TemplateManager:
         return result
 
     def get_sector_specific_templates(self, sector: str) -> List[ReportTemplate]:
-        return ReportTemplate.objects.filter(
+        qs = ReportTemplate.objects.filter(
             tenant_id=self.user.tenant_id if self.user else None,
-            sector__in=[sector, 'all'],
             is_published=True
         )
+        if sector:
+            qs = qs.filter(models.Q(sector__code__iexact=sector) | models.Q(sector__name__iexact=sector) | models.Q(sector__isnull=True))
+        return list(qs)
 
     def get_templates_by_type(self, template_type: str) -> List[ReportTemplate]:
         return ReportTemplate.objects.filter(
@@ -243,13 +253,19 @@ class TemplateManager:
             raise ReportPermissionError("You do not have permission to create templates")
         templates = []
         for data in templates_data:
+            sec_obj = data.get('sector')
+            if isinstance(sec_obj, str):
+                from apps.tenant.models import OrganizationSector
+                sec_obj = OrganizationSector.objects.filter(
+                    models.Q(code__iexact=sec_obj) | models.Q(name__iexact=sec_obj)
+                ).first()
             template = ReportTemplate(
                 tenant_id=self.user.tenant_id if self.user else None,
                 name=data.get('name'),
                 description=data.get('description', ''),
                 template_type=data.get('template_type'),
                 category=data.get('category', ''),
-                sector=data.get('sector', 'all'),
+                sector=sec_obj,
                 owner=self.user,
                 is_system=False,
                 is_published=data.get('is_published', False),

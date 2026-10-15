@@ -10,7 +10,7 @@ class ReportExportThrottle(SimpleRateThrottle):
     Rate limit for report export endpoints.
     """
     scope = 'report_export'
-    rate = '100/hour'
+    rate = '1000/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:
@@ -24,7 +24,7 @@ class ExportUserThrottle(SimpleRateThrottle):
     Per-user rate limit for exports.
     """
     scope = 'export_user'
-    rate = '10/hour'
+    rate = '1000/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:
@@ -36,7 +36,7 @@ class ExportTenantThrottle(SimpleRateThrottle):
     Per-tenant rate limit for exports.
     """
     scope = 'export_tenant'
-    rate = '100/hour'
+    rate = '5000/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:
@@ -114,7 +114,7 @@ class ExportFormatThrottle(SimpleRateThrottle):
     Rate limit per export format.
     """
     scope = 'export_format'
-    rate = '5/hour'
+    rate = '1000/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:

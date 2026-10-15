@@ -9,7 +9,7 @@ from apps.reportplt.services.extraction.system.configs_extractor import (
 
 from apps.reportplt.services.extraction.production.tenant_extractor import (
     TenantUnifiedExtractor, TenantLifecycleExtractor, TenantQuotaExtractor,
-    TenantSchemaExtractor, TenantDomainExtractor, TenantBackupExtractor
+    TenantSchemaExtractor, TenantDomainExtractor
 )
 
 from apps.reportplt.services.extraction.production.kpi_extractor import (
@@ -62,7 +62,6 @@ __all__ = [
     'TenantQuotaExtractor',
     'TenantSchemaExtractor',
     'TenantDomainExtractor',
-    'TenantBackupExtractor',
     'KPIUnifiedExtractor',
     'KPIIndividualScorecardExtractor',
     'KPIDepartmentalHeatmapExtractor',

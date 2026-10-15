@@ -1,10 +1,10 @@
 import uuid
 from django.db import models
-from apps.reportplt.models.base import ReportingBaseModel
+from .base import BaseModel
 from apps.reportplt.constants import AuditActionType, DataSensitivityLevel
 from apps.reportplt.managers.audit import ReportAuditLogManager
 
-class ReportAuditLog(ReportingBaseModel):
+class ReportAuditLog(BaseModel):
     generated_report = models.ForeignKey('reportplt.GeneratedReport', on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
     template_code = models.CharField(max_length=100, db_index=True)
     action = models.CharField(max_length=20, choices=AuditActionType.choices, db_index=True)

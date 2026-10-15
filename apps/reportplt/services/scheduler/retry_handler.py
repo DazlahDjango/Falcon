@@ -4,6 +4,7 @@ import traceback
 from typing import Dict, Any, Optional
 from datetime import timedelta
 from django.utils import timezone
+from django.db import models
 from apps.reportplt.models import ReportSchedule, ReportExecution
 from apps.reportplt.exceptions import ReportScheduleError
 

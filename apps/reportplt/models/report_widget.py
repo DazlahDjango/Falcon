@@ -28,11 +28,11 @@ class ReportWidget(BaseModel):
     dashboard = models.ForeignKey('reportplt.ReportDashboard', on_delete=models.CASCADE, related_name='widgets')
     name = models.CharField(_('name'), max_length=255)
     widget_type = models.CharField(_('widget type'), max_length=50, choices=WIDGET_TYPES, db_index=True)
-    config = models.JSONField(_('widget configuration'), default=dict)
-    data_config = models.JSONField(_('data configuration'), default=dict)
-    style_config = models.JSONField(_('style configuration'), default=dict)
-    position = models.JSONField(_('position'), default=dict)
-    size = models.JSONField(_('size'), default=dict)
+    config = models.JSONField(_('widget configuration'), default=dict, blank=True)
+    data_config = models.JSONField(_('data configuration'), default=dict, blank=True)
+    style_config = models.JSONField(_('style configuration'), default=dict, blank=True)
+    position = models.JSONField(_('position'), default=dict, blank=True)
+    size = models.JSONField(_('size'), default=dict, blank=True)
     is_active = models.BooleanField(_('is active'), default=True)
     is_visible = models.BooleanField(_('is visible'), default=True)
     auto_refresh = models.BooleanField(_('auto refresh'), default=True)
@@ -40,10 +40,10 @@ class ReportWidget(BaseModel):
     title = models.CharField(_('title'), max_length=255, blank=True)
     subtitle = models.CharField(_('subtitle'), max_length=255, blank=True)
     data_source = models.CharField(_('data source'), max_length=50, blank=True)
-    data_query = models.JSONField(_('data query'), default=dict)
-    filters = models.JSONField(_('filters'), default=dict)
-    sort = models.JSONField(_('sort configuration'), default=list)
-    aggregation = models.JSONField(_('aggregation'), default=dict)
+    data_query = models.JSONField(_('data query'), default=dict, blank=True)
+    filters = models.JSONField(_('filters'), default=dict, blank=True)
+    sort = models.JSONField(_('sort configuration'), default=list, blank=True)
+    aggregation = models.JSONField(_('aggregation'), default=dict, blank=True)
     limit = models.PositiveIntegerField(_('limit'), default=0)
     
     objects = SoftDeleteManager()
@@ -62,11 +62,11 @@ class ReportWidget(BaseModel):
         return f"{self.name} ({self.widget_type})"
     
     def get_data(self):
-        from ..services.widget_data_fetcher import WidgetDataFetcher
+        from ..services import WidgetDataFetcher
         fetcher = WidgetDataFetcher(self)
         return fetcher.fetch()
     
     def render(self):
-        from ..services.widget_engine import WidgetEngine
+        from ..services import WidgetEngine
         engine = WidgetEngine(self)
         return engine.render()

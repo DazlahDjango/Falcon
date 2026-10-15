@@ -1,0 +1,204 @@
+/* frontend/src/components/reports/presets/presets.css */
+
+.preset-selector-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.preset-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.preset-select {
+    padding: 6px 28px 6px 32px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    background-color: var(--bg-surface, #ffffff);
+    color: var(--text-primary, #1e293b);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    transition: all 0.2s ease;
+}
+
+.preset-select:hover {
+    border-color: var(--primary-color, #2563eb);
+}
+
+.preset-select:focus {
+    border-color: var(--primary-color, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.preset-icon-left {
+    position: absolute;
+    left: 10px;
+    pointer-events: none;
+    color: #64748b;
+}
+
+.preset-icon-right {
+    position: absolute;
+    right: 10px;
+    pointer-events: none;
+    color: #64748b;
+}
+
+.preset-btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background-color: var(--primary-color, #2563eb);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.preset-btn-save:hover {
+    background-color: var(--primary-hover, #1d4ed8);
+}
+
+.preset-btn-save:active {
+    transform: scale(0.98);
+}
+
+/* Preset Save Modal */
+.preset-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.preset-modal-card {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.preset-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.preset-modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.preset-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.preset-modal-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.preset-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.preset-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    background: #f8fafc;
+}
+
+/* Preset Status Badge */
+.preset-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.preset-status-badge.default {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.preset-status-badge.custom {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+/* Preset Table */
+.preset-table-container {
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.preset-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.preset-table th {
+    background: #f8fafc;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.preset-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+}
+
+.preset-table tr:hover {
+    background: #f8fafc;
+}

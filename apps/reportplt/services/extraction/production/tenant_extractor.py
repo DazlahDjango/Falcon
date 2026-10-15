@@ -7,7 +7,7 @@ from django.utils import timezone
 from apps.tenant.models import (
     Organization, OrganizationDomain, OrganizationSchema,
     OrganizationResource, OrganizationConnection, OrganizationMigration,
-    TenantBackup, OrganizationSector
+    OrganizationSector
 )
 from apps.tenant.constants import OrganizationStatus, SubscriptionTier, DomainStatus, SchemaStatus, MigrationStatus
 
@@ -258,74 +258,6 @@ class TenantDomainExtractor:
         }
 
 
-class TenantBackupExtractor:
-    """Extracts tenant data backups, backup sizes, execution durations, and retention expiry statuses."""
-
-    def __init__(self, tenant_id: Optional[str] = None, filters: Optional[Dict] = None):
-        self.tenant_id = tenant_id
-        self.filters = filters or {}
-
-    def extract(self) -> Dict[str, Any]:
-        try:
-            backups = TenantBackup.objects.all()
-            if self.tenant_id:
-                backups = backups.filter(tenant_id=self.tenant_id)
-
-            total_backups = backups.count()
-            completed_backups = backups.filter(status='completed').count()
-            failed_backups = backups.filter(status='failed').count()
-            pending_backups = backups.filter(status='pending').count()
-            running_backups = backups.filter(status='running').count()
-
-            success_rate = round((completed_backups / total_backups * 100), 2) if total_backups > 0 else 0.0
-            total_size_mb = backups.filter(status='completed').aggregate(total=models.Sum('file_size_mb'))['total'] or 0.0
-
-            expired_backups = backups.filter(expires_at__isnull=False, expires_at__lte=timezone.now()).count()
-
-            backup_list = []
-            for b in backups.order_by('-created_at')[:100]:
-                backup_list.append({
-                    'id': str(b.id),
-                    'tenant_name': b.tenant.name if b.tenant else 'Unknown',
-                    'backup_type': b.backup_type,
-                    'status': b.status,
-                    'file_size_mb': b.file_size_mb,
-                    'started_at': b.started_at.isoformat() if b.started_at else None,
-                    'completed_at': b.completed_at.isoformat() if b.completed_at else None,
-                    'expires_at': b.expires_at.isoformat() if b.expires_at else None,
-                    'duration_seconds': b.duration_seconds,
-                })
-
-            return {
-                'summary': {
-                    'total_backups': total_backups,
-                    'completed_backups': completed_backups,
-                    'failed_backups': failed_backups,
-                    'pending_backups': pending_backups,
-                    'running_backups': running_backups,
-                    'success_rate': success_rate,
-                    'total_size_mb': round(total_size_mb, 2),
-                    'expired_backups': expired_backups,
-                },
-                'backups': backup_list,
-            }
-        except Exception as e:
-            logger.warning(f"TenantBackup table query failed (table may not exist yet): {e}")
-            return {
-                'summary': {
-                    'total_backups': 0,
-                    'completed_backups': 0,
-                    'failed_backups': 0,
-                    'pending_backups': 0,
-                    'running_backups': 0,
-                    'success_rate': 0.0,
-                    'total_size_mb': 0.0,
-                    'expired_backups': 0,
-                },
-                'backups': [],
-            }
-
-
 class TenantUnifiedExtractor:
     """Master Unified Extractor extracting complete real-data metrics across all apps.tenant sub-domains."""
 
@@ -336,14 +268,12 @@ class TenantUnifiedExtractor:
         self.quota_extractor = TenantQuotaExtractor(tenant_id, filters)
         self.schema_extractor = TenantSchemaExtractor(tenant_id, filters)
         self.domain_extractor = TenantDomainExtractor(tenant_id, filters)
-        self.backup_extractor = TenantBackupExtractor(tenant_id, filters)
 
     def extract(self) -> Dict[str, Any]:
         lifecycle_data = self.lifecycle_extractor.extract()
         quota_data = self.quota_extractor.extract()
         schema_data = self.schema_extractor.extract()
         domain_data = self.domain_extractor.extract()
-        backup_data = self.backup_extractor.extract()
 
         return {
             'source': 'tenant',
@@ -352,7 +282,6 @@ class TenantUnifiedExtractor:
             'quota': quota_data,
             'schema': schema_data,
             'domain': domain_data,
-            'backup': backup_data,
             'summary': {
                 'total_organizations': lifecycle_data['summary']['total_organizations'],
                 'active_organizations': lifecycle_data['summary']['active_organizations'],
@@ -360,6 +289,5 @@ class TenantUnifiedExtractor:
                 'exceeded_quota_resources': quota_data['summary']['exceeded_count'],
                 'total_schema_size_mb': schema_data['summary']['total_size_mb'],
                 'ssl_expiring_soon': domain_data['summary']['ssl_expiring_in_30_days'],
-                'backup_success_rate': backup_data['summary']['success_rate'],
             }
         }

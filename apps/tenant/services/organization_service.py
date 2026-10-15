@@ -156,14 +156,15 @@ class OrganizationService:
     # Lifecycle                                                             #
     # ------------------------------------------------------------------ #
 
-    def suspend_organization(self, organization_id, user=None):
+    def suspend_organization(self, organization_id, user=None, reason=None):
         org = self._get_org_or_raise(organization_id)
         if org.status == OrganizationStatus.SUSPENDED:
             raise OrganizationInvalidError('Organization is already suspended')
 
         org.suspend()
         self._pause_connections(org.id)
-        org.record_audit('suspended', user_id=getattr(user, 'id', None))
+        details = {'reason': reason} if reason else None
+        org.record_audit('suspended', user_id=getattr(user, 'id', None), details=details)
         self.logger.warning("Suspended organization %s", org.id)
         return org
 

@@ -5,7 +5,8 @@ from rest_framework_nested import routers as nested_routers
 from apps.reportplt.api.v1.views import (
     ReportViewSet, TemplateViewSet, ScheduleViewSet, ExecutionViewSet,
     ExportViewSet, DashboardViewSet, WidgetViewSet, FilterViewSet,
-    ShareViewSet, AuditViewSet, AnalyticsViewSet, ReportingViewSet
+    ShareViewSet, AuditViewSet, AnalyticsViewSet, ReportingViewSet,
+    DistributionListViewSet, ReportPresetViewSet
 )
 
 router = DefaultRouter()
@@ -21,6 +22,8 @@ router.register(r'shares', ShareViewSet, basename='share')
 router.register(r'audits', AuditViewSet, basename='audit')
 router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 router.register(r'reporting', ReportingViewSet, basename='reporting')
+router.register(r'distributions', DistributionListViewSet, basename='distribution')
+router.register(r'presets', ReportPresetViewSet, basename='preset')
 
 report_router = nested_routers.NestedDefaultRouter(router, r'reports', lookup='report')
 report_router.register(r'schedules', ScheduleViewSet, basename='report-schedules')

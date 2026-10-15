@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSave, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useSchedule, useReports } from '../../../hooks/reports';
 import { ReportLoading, ReportError, ReportConfirmDialog } from '../common';
+import { DistributionPicker } from '../distributions';
 import './schedules.css';
 
 export const ScheduleEdit = () => {
@@ -337,7 +338,17 @@ export const ScheduleEdit = () => {
 
                         {formData.delivery_method.includes('email') && (
                             <div className="form-section">
-                                <h3 className="section-title">Email Recipients</h3>
+                                <h3 className="section-title">Email Recipients & Distribution</h3>
+                                <div style={{ marginBottom: 16 }}>
+                                    <DistributionPicker
+                                        onRecipientsImported={(importedEmails) => {
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                recipients: Array.from(new Set([...prev.recipients, ...importedEmails])),
+                                            }));
+                                        }}
+                                    />
+                                </div>
                                 {['recipients', 'cc_recipients', 'bcc_recipients'].map((type) => (
                                     <div key={type} className="recipient-group">
                                         <label>

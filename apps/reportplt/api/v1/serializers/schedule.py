@@ -93,7 +93,7 @@ class ScheduleCreateSerializer(ScheduleBaseSerializer):
     """
     class Meta(ScheduleBaseSerializer.Meta):
         fields = [
-            'report', 'name', 'frequency', 'cron_expression',
+            'id', 'report', 'name', 'frequency', 'cron_expression',
             'recipients', 'cc_recipients', 'bcc_recipients',
             'delivery_method', 'webhook_url', 's3_path', 'is_active',
             'max_retries', 'retry_delay', 'timezone', 'custom_params',
@@ -109,12 +109,18 @@ class ScheduleCreateSerializer(ScheduleBaseSerializer):
     
     def create(self, validated_data):
         request = self.context.get('request')
-        validated_data['tenant_id'] = request.tenant_id if request else None
-        validated_data['created_by'] = request.user if request else None
-        validated_data['owner'] = request.user if request else None
+        user = getattr(request, 'user', None)
+        if user and not getattr(user, 'is_authenticated', False):
+            user = None
+        tenant_id = getattr(request, 'tenant_id', None)
+        if not tenant_id and user:
+            tenant_id = getattr(user, 'tenant_id', None)
+        validated_data['tenant_id'] = tenant_id
+        validated_data['created_by'] = user
+        validated_data['owner'] = user
         validated_data['status'] = 'pending'
         from apps.reportplt.services.scheduler.schedule_manager import ScheduleManager
-        manager = ScheduleManager(request.user)
+        manager = ScheduleManager(user)
         return manager.create_schedule(validated_data)
 
 class ScheduleUpdateSerializer(ScheduleBaseSerializer):

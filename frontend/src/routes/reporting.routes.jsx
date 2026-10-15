@@ -47,7 +47,27 @@ const DashboardViewPage = React.lazy(() => import('../pages/reports/DashboardVie
 const SharesPage = React.lazy(() => import('../pages/reports/SharesPage'));
 const ShareDetailPage = React.lazy(() => import('../pages/reports/ShareDetailPage'));
 const ShareCreatePage = React.lazy(() => import('../pages/reports/ShareCreatePage'));
+const ShareEditPage = React.lazy(() => import('../pages/reports/ShareEditPage'));
 const ShareAccessPage = React.lazy(() => import('../pages/reports/ShareAccessPage'));
+
+// Filter Pages
+const FiltersPage = React.lazy(() => import('../pages/reports/FiltersPage'));
+const FilterDetailPage = React.lazy(() => import('../pages/reports/FilterDetailPage'));
+const FilterCreatePage = React.lazy(() => import('../pages/reports/FilterCreatePage'));
+const FilterEditPage = React.lazy(() => import('../pages/reports/FilterEditPage'));
+const FilterApplyPage = React.lazy(() => import('../pages/reports/FilterApplyPage'));
+
+// Widget Pages
+const WidgetsPage = React.lazy(() => import('../pages/reports/WidgetsPage'));
+const WidgetDetailPage = React.lazy(() => import('../pages/reports/WidgetDetailPage'));
+const WidgetCreatePage = React.lazy(() => import('../pages/reports/WidgetCreatePage'));
+const WidgetEditPage = React.lazy(() => import('../pages/reports/WidgetEditPage'));
+
+// Distribution Pages
+const DistributionsPage = React.lazy(() => import('../pages/reports/DistributionsPage'));
+
+// Preset Pages
+const PresetsPage = React.lazy(() => import('../pages/reports/PresetsPage'));
 
 // Audit Pages
 const AuditsPage = React.lazy(() => import('../pages/reports/AuditsPage'));
@@ -140,6 +160,54 @@ const reportingRoutes = [
       { path: REPORT_ROUTES.DEFAULT_DASHBOARD, element: <DashboardsPage /> },
     ],
   },
+  // Filters
+  {
+    path: REPORT_ROUTES.FILTERS,
+    element: <ReportsPage />,
+    children: [
+      { path: '', element: <FiltersPage /> },
+      { path: REPORT_ROUTES.FILTER_CREATE, element: <FilterCreatePage /> },
+      { path: REPORT_ROUTES.FILTER_DETAIL(':id'), element: <FilterDetailPage /> },
+      { path: REPORT_ROUTES.FILTER_EDIT(':id'), element: <FilterEditPage /> },
+      { path: REPORT_ROUTES.FILTER_APPLY(':id'), element: <FilterApplyPage /> },
+      { path: REPORT_ROUTES.MY_FILTERS, element: <FiltersPage /> },
+      { path: REPORT_ROUTES.GLOBAL_FILTERS, element: <FiltersPage /> },
+    ],
+  },
+  // Widgets
+  {
+    path: REPORT_ROUTES.WIDGETS,
+    element: <ReportsPage />,
+    children: [
+      { path: '', element: <WidgetsPage /> },
+      { path: REPORT_ROUTES.WIDGET_CREATE, element: <WidgetCreatePage /> },
+      { path: REPORT_ROUTES.WIDGET_DETAIL(':id'), element: <WidgetDetailPage /> },
+      { path: REPORT_ROUTES.WIDGET_EDIT(':id'), element: <WidgetEditPage /> },
+      { path: REPORT_ROUTES.WIDGET_DATA(':id'), element: <WidgetDetailPage /> },
+    ],
+  },
+  // Distributions
+  {
+    path: REPORT_ROUTES.DISTRIBUTIONS,
+    element: <ReportsPage />,
+    children: [
+      { path: '', element: <DistributionsPage /> },
+      { path: REPORT_ROUTES.DISTRIBUTION_CREATE, element: <DistributionsPage /> },
+      { path: REPORT_ROUTES.DISTRIBUTION_DETAIL(':id'), element: <DistributionsPage /> },
+      { path: REPORT_ROUTES.DISTRIBUTION_EDIT(':id'), element: <DistributionsPage /> },
+    ],
+  },
+  // Presets
+  {
+    path: REPORT_ROUTES.PRESETS,
+    element: <ReportsPage />,
+    children: [
+      { path: '', element: <PresetsPage /> },
+      { path: REPORT_ROUTES.PRESET_CREATE, element: <PresetsPage /> },
+      { path: REPORT_ROUTES.PRESET_DETAIL(':id'), element: <PresetsPage /> },
+      { path: REPORT_ROUTES.PRESET_EDIT(':id'), element: <PresetsPage /> },
+    ],
+  },
   // Shares
   {
     path: REPORT_ROUTES.SHARES,
@@ -148,6 +216,7 @@ const reportingRoutes = [
       { path: '', element: <SharesPage /> },
       { path: REPORT_ROUTES.SHARE_CREATE, element: <ShareCreatePage /> },
       { path: REPORT_ROUTES.SHARE_DETAIL(':id'), element: <ShareDetailPage /> },
+      { path: REPORT_ROUTES.SHARE_EDIT(':id'), element: <ShareEditPage /> },
       { path: REPORT_ROUTES.SHARED_WITH_ME, element: <SharesPage /> },
     ],
   },
@@ -263,10 +332,39 @@ export const ReportPaths = {
   MyDashboards: REPORT_ROUTES.MY_DASHBOARDS,
   DefaultDashboard: REPORT_ROUTES.DEFAULT_DASHBOARD,
 
+  // Filters
+  Filters: REPORT_ROUTES.FILTERS,
+  FilterCreate: REPORT_ROUTES.FILTER_CREATE,
+  FilterDetail: (id) => buildReportPath(REPORT_ROUTES.FILTER_DETAIL(':id'), { id }),
+  FilterEdit: (id) => buildReportPath(REPORT_ROUTES.FILTER_EDIT(':id'), { id }),
+  FilterApply: (id) => buildReportPath(REPORT_ROUTES.FILTER_APPLY(':id'), { id }),
+  MyFilters: REPORT_ROUTES.MY_FILTERS,
+  GlobalFilters: REPORT_ROUTES.GLOBAL_FILTERS,
+
+  // Widgets
+  Widgets: REPORT_ROUTES.WIDGETS,
+  WidgetCreate: REPORT_ROUTES.WIDGET_CREATE,
+  WidgetDetail: (id) => buildReportPath(REPORT_ROUTES.WIDGET_DETAIL(':id'), { id }),
+  WidgetEdit: (id) => buildReportPath(REPORT_ROUTES.WIDGET_EDIT(':id'), { id }),
+  WidgetData: (id) => buildReportPath(REPORT_ROUTES.WIDGET_DATA(':id'), { id }),
+
+  // Distributions
+  Distributions: REPORT_ROUTES.DISTRIBUTIONS,
+  DistributionCreate: REPORT_ROUTES.DISTRIBUTION_CREATE,
+  DistributionDetail: (id) => buildReportPath(REPORT_ROUTES.DISTRIBUTION_DETAIL(':id'), { id }),
+  DistributionEdit: (id) => buildReportPath(REPORT_ROUTES.DISTRIBUTION_EDIT(':id'), { id }),
+
+  // Presets
+  Presets: REPORT_ROUTES.PRESETS,
+  PresetCreate: REPORT_ROUTES.PRESET_CREATE,
+  PresetDetail: (id) => buildReportPath(REPORT_ROUTES.PRESET_DETAIL(':id'), { id }),
+  PresetEdit: (id) => buildReportPath(REPORT_ROUTES.PRESET_EDIT(':id'), { id }),
+
   // Shares
   Shares: REPORT_ROUTES.SHARES,
   ShareCreate: REPORT_ROUTES.SHARE_CREATE,
   ShareDetail: (id) => buildReportPath(REPORT_ROUTES.SHARE_DETAIL(':id'), { id }),
+  ShareEdit: (id) => buildReportPath(REPORT_ROUTES.SHARE_EDIT(':id'), { id }),
   ShareAccess: (token) => buildReportPath(REPORT_ROUTES.SHARE_ACCESS(':token'), { token }),
   SharedWithMe: REPORT_ROUTES.SHARED_WITH_ME,
 

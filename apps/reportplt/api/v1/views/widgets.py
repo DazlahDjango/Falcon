@@ -3,6 +3,7 @@ from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.utils import timezone
 from apps.reportplt.models import ReportWidget
 from apps.reportplt.api.v1.serializers import (
     WidgetListSerializer, WidgetDetailSerializer,
@@ -80,16 +81,9 @@ class WidgetViewSet(BaseModelViewSet):
     @action(detail=True, methods=['get'], url_path='data')
     def data(self, request, pk=None):
         widget = self.get_object()
-        fetcher = WidgetDataFetcher()
         engine = WidgetEngine()
-        data = fetcher.fetch_widget_data(widget)
         rendered = engine.render_widget(widget)
-        return Response({
-            'widget_id': str(widget.id),
-            'widget_type': widget.widget_type,
-            'title': widget.title or widget.name,
-            'data': rendered
-        })
+        return Response(rendered)
 
     @action(detail=True, methods=['post'], url_path='action')
     @audit_log(action=AuditAction.EDIT)

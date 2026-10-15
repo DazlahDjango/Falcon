@@ -1,15 +1,15 @@
 import uuid
 from django.db import models
-from apps.reportplt.models.base import ReportingBaseModel
-from apps.accounts.managers.base import TenantAwareManager
+from .base import BaseModel
+from apps.reportplt.managers.base import SoftDeleteManager
 
-class DistributionList(ReportingBaseModel):
+class DistributionList(BaseModel):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, default='')
     recipient_emails = models.JSONField(default=list)
     recipient_users = models.ManyToManyField('accounts.User', blank=True, related_name='report_distributions')
 
-    objects = TenantAwareManager()
+    objects = SoftDeleteManager()
 
     class Meta:
         db_table = 'reporting_distribution_list'

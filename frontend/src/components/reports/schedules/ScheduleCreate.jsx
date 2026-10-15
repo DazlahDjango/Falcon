@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSave, FiPlus, FiTrash2, FiMail, FiGlobe } from 'react-icons/fi';
 import { useSchedules, useReports } from '../../../hooks/reports';
 import { ReportLoading, ReportError, ReportConfirmDialog } from '../common';
+import { DistributionPicker } from '../distributions';
 import './schedules.css';
 
 export const ScheduleCreate = () => {
@@ -323,8 +324,18 @@ export const ScheduleCreate = () => {
                             <div className="form-section">
                                 <h3 className="section-title">
                                     <FiMail size={16} />
-                                    Email Recipients
+                                    Email Recipients & Distribution
                                 </h3>
+                                <div style={{ marginBottom: 16 }}>
+                                    <DistributionPicker
+                                        onRecipientsImported={(importedEmails) => {
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                recipients: Array.from(new Set([...prev.recipients, ...importedEmails])),
+                                            }));
+                                        }}
+                                    />
+                                </div>
                                 {['recipients', 'cc_recipients', 'bcc_recipients'].map((type) => (
                                     <div key={type} className="recipient-group">
                                         <label>

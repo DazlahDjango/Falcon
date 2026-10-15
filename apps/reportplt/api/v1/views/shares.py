@@ -85,7 +85,7 @@ class ShareViewSet(BaseModelViewSet):
             return Response({'error': 'Share link has expired or is inactive'}, status=status.HTTP_410_GONE)
         share.record_access()
         rbac = ReportRBAC(request.user)
-        if rbac.can_view_report(share.report):
+        if share.shared_with == request.user or share.share_type == 'public' or rbac.can_view_report(share.report) or getattr(request.user, 'role', '') in ['super_admin', 'client_admin']:
             from apps.reportplt.api.v1.serializers import ReportDetailSerializer
             report_serializer = ReportDetailSerializer(share.report, context={'request': request})
             return Response({

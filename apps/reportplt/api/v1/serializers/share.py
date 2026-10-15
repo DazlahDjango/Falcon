@@ -98,16 +98,23 @@ class ShareCreateSerializer(ShareBaseSerializer):
     """
     class Meta(ShareBaseSerializer.Meta):
         fields = [
-            'report', 'shared_with', 'share_type', 'permission',
+            'id', 'report', 'shared_with', 'share_type', 'permission',
+            'share_link', 'share_token',
             'expires_at', 'password', 'password_protected',
             'message', 'include_attachments', 'notify_recipient'
         ]
     
     def create(self, validated_data):
         request = self.context.get('request')
-        validated_data['tenant_id'] = request.tenant_id if request else None
-        validated_data['created_by'] = request.user if request else None
-        validated_data['shared_by'] = request.user if request else None
+        user = getattr(request, 'user', None)
+        if user and not getattr(user, 'is_authenticated', False):
+            user = None
+        tenant_id = getattr(request, 'tenant_id', None)
+        if not tenant_id and user:
+            tenant_id = getattr(user, 'tenant_id', None)
+        validated_data['tenant_id'] = tenant_id
+        validated_data['created_by'] = user
+        validated_data['shared_by'] = user
         share = super().create(validated_data)
         share.generate_share_link()
         return share
@@ -126,5 +133,5 @@ class ShareAccessSerializer(serializers.Serializer):
     """
     Serializer for accessing shared reports.
     """
-    token = serializers.CharField(required=True)
+    token = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(required=False, allow_blank=True)

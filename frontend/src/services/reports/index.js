@@ -11,6 +11,9 @@ import { shareService } from './share.service';
 import { auditService } from './audit.service';
 import { analyticsService } from './analytics.service';
 import { reportingService } from './reporting.service';
+import { distributionService } from './distribution.service';
+import { presetService } from './preset.service';
+import { reportsWebSocketService } from './websocket.service';
 
 export {
     ReportBaseService,
@@ -28,6 +31,9 @@ export {
     auditService,
     analyticsService,
     reportingService,
+    distributionService,
+    presetService,
+    reportsWebSocketService,
 };
 
 export default {
@@ -46,4 +52,7 @@ export default {
     auditService,
     analyticsService,
     reportingService,
+    distributionService,
+    presetService,
+    reportsWebSocketService,
 };

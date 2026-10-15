@@ -1,0 +1,40 @@
+{% extends "accounts/email/base.html" %}
+
+{% block title %}Report Export Ready - Falcon PMS{% endblock %}
+
+{% block header_title %}Your Export is Ready{% endblock %}
+
+{% block content %}
+<div style="padding: 10px 0;">
+    <h2 style="color: #1e293b; font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 12px;">
+        {{ report.name }}
+    </h2>
+    
+    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+        Your report export has completed successfully and is available for download.
+    </p>
+
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+                <td style="color: #64748b; padding: 6px 0; width: 40%;"><strong>Format:</strong></td>
+                <td style="color: #1e293b; padding: 6px 0; font-weight: 500;">{{ export.format|upper }}</td>
+            </tr>
+            <tr>
+                <td style="color: #64748b; padding: 6px 0;"><strong>File Name:</strong></td>
+                <td style="color: #1e293b; padding: 6px 0; font-family: monospace; font-size: 13px;">{{ export.file_name|default:"Report Export" }}</td>
+            </tr>
+            <tr>
+                <td style="color: #64748b; padding: 6px 0;"><strong>Generated At:</strong></td>
+                <td style="color: #1e293b; padding: 6px 0;">{{ timestamp|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0 10px;">
+        <a href="{{ site_url|default:'#' }}/api/reportplt/exports/{{ export.id }}/download/" class="button" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
+            Download Export
+        </a>
+    </div>
+</div>
+{% endblock %}

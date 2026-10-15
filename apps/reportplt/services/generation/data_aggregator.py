@@ -359,7 +359,9 @@ class DataAggregator:
         Also preserves sub-section payloads in the returned dict (they're
         already there via **data) so downstream renderers can read them.
         """
-        summary = data.get('summary', {}) or {}
+        raw_metrics = data.get('metrics') or {}
+        raw_summary = data.get('summary') or {}
+        summary = {**raw_summary, **raw_metrics}
 
         comp = data.get('cycle_compliance', {}) or {}
         perf = data.get('organization_performance', {}) or {}
@@ -376,53 +378,70 @@ class DataAggregator:
         completion_pct = (
             comp_summary.get('overall_completion_rate_pct')
             or comp_summary.get('overall_completion_rate')
+            or summary.get('overall_completion_rate_pct')
             or 0.0
         )
         perf_score = (
             perf_summary.get('avg_overall_score')
             or perf_summary.get('average_individual_score')
             or perf_summary.get('avg_score')
+            or summary.get('avg_overall_score')
+            or summary.get('average_final_score')
             or 0.0
         )
         pip_success_pct = (
             pip_summary.get('pip_success_rate_pct')
             or pip_summary.get('pip_success_rate')
+            or summary.get('pip_success_rate_pct')
             or 0.0
         )
-        active_pips = pip_summary.get('active_pips', 0) or 0
+        active_pips = pip_summary.get('active_pips', summary.get('active_pips', 0)) or 0
 
-        talent_health_score = round(
-            (completion_pct * 0.30) +
-            (perf_score * 0.30) +
-            (pip_success_pct * 0.20) +
-            (max(0, 100 - active_pips * 5) * 0.20),
-            2
+        talent_health_score = summary.get('talent_health_score')
+        if talent_health_score is None:
+            talent_health_score = round(
+                (completion_pct * 0.30) +
+                (perf_score * 0.30) +
+                (pip_success_pct * 0.20) +
+                (max(0, 100 - active_pips * 5) * 0.20),
+                2
+            )
+
+        total_cal_sessions = cal_summary.get('total_calibration_sessions', summary.get('total_calibration_sessions', summary.get('calibration_sessions_count', 0)))
+        total_adj_made = cal_summary.get('total_adjustments_made', summary.get('total_adjustments_made', summary.get('calibration_adjustments_count', 0)))
+        total_rated = perf_summary.get('total_rated_employees', summary.get('total_rated_employees', 0))
+        total_eval = (
+            ind_summary.get('total_evaluated_employees')
+            or summary.get('total_evaluated_employees')
+            or perf_summary.get('total_rated_employees')
+            or comp_summary.get('total_participants')
+            or 0
         )
+        total_parts = comp_summary.get('total_participants', summary.get('total_participants', 0))
+        total_pips = pip_summary.get('total_pips', summary.get('total_pips', 0))
 
         aggregated_summary = {
             **summary,
             'talent_health_score': talent_health_score,
             'overall_completion_rate_pct': completion_pct,
             'avg_overall_score': perf_score,
-            'avg_kpi_score': perf_summary.get('avg_kpi_score', 0.0),
-            'avg_competency_score': perf_summary.get('avg_competency_score', 0.0),
-            'std_dev': perf_summary.get('std_dev', 0.0),
-            'total_evaluated_employees': (
-                ind_summary.get('total_evaluated_employees')
-                or perf_summary.get('total_rated_employees')
-                or comp_summary.get('total_participants')
-                or 0
-            ),
-            'total_participants': comp_summary.get('total_participants', 0),
+            'avg_kpi_score': perf_summary.get('avg_kpi_score', summary.get('avg_kpi_score', 0.0)),
+            'avg_competency_score': perf_summary.get('avg_competency_score', summary.get('avg_competency_score', 0.0)),
+            'std_dev': perf_summary.get('std_dev', summary.get('std_dev', 0.0)),
+            'total_evaluated_employees': total_eval,
+            'total_rated_employees': total_rated,
+            'total_participants': total_parts,
             'active_pips_count': active_pips,
             'active_pips': active_pips,
             'pip_success_rate_pct': pip_success_pct,
-            'total_pips': pip_summary.get('total_pips', 0),
-            'calibration_adjustments_count': cal_summary.get('total_adjustments_made', 0),
-            'calibration_sessions_count': cal_summary.get('total_calibration_sessions', 0),
-            'outlier_count': cal_summary.get('outlier_count', 0),
-            'promotion_ready_count': ind_summary.get('promotion_ready_count', 0),
-            'pip_flagged_count': ind_summary.get('pip_flagged_count', 0),
+            'total_pips': total_pips,
+            'total_calibration_sessions': total_cal_sessions,
+            'total_adjustments_made': total_adj_made,
+            'calibration_adjustments_count': total_adj_made,
+            'calibration_sessions_count': total_cal_sessions,
+            'outlier_count': cal_summary.get('outlier_count', summary.get('outlier_count', 0)),
+            'promotion_ready_count': ind_summary.get('promotion_ready_count', summary.get('promotion_ready_count', 0)),
+            'pip_flagged_count': ind_summary.get('pip_flagged_count', summary.get('pip_flagged_count', 0)),
         }
 
         return {

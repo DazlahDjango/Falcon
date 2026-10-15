@@ -3,7 +3,14 @@ from typing import Optional, List
 from django.db import models
 from django.db.models import Q
 from rest_framework.filters import BaseFilterBackend
-from apps.reportplt.models import Report, ReportDashboard, ReportTemplate
+from apps.reportplt.models import (
+    Report,
+    ReportDashboard,
+    ReportTemplate,
+    ReportSchedule,
+    ReportExport,
+    ReportAudit,
+)
 
 class ReportSearchFilter(BaseFilterBackend):
     """

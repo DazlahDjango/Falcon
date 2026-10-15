@@ -10,6 +10,8 @@ import filterReducer from './filter.slice';
 import shareReducer from './share.slice';
 import auditReducer from './audit.slice';
 import analyticsReducer from './analytics.slice';
+import distributionReducer from './distribution.slice';
+import presetReducer from './preset.slice';
 
 export const reportReducers = combineReducers({
     report: reportReducer,
@@ -23,6 +25,8 @@ export const reportReducers = combineReducers({
     share: shareReducer,
     audit: auditReducer,
     analytics: analyticsReducer,
+    distribution: distributionReducer,
+    preset: presetReducer,
 });
 
 export default reportReducers;
@@ -119,6 +123,7 @@ export {
     regenerateExport,
     fetchMyExports,
     fetchExportFormats,
+    deleteExport,
     clearCurrentExport,
     clearErrors as clearExportErrors,
     setFilters as setExportFilters,
@@ -247,3 +252,33 @@ export {
     clearHistory,
     setCurrentAnalysis,
 } from './analytics.slice';
+
+export {
+    default as distributionReducer,
+    fetchDistributions,
+    fetchDistribution,
+    createDistribution,
+    updateDistribution,
+    deleteDistribution,
+    clearCurrentDistribution,
+    clearErrors as clearDistributionErrors,
+    setFilters as setDistributionFilters,
+    resetFilters as resetDistributionFilters,
+    setPagination as setDistributionPagination,
+    clearAllDistributions,
+} from './distribution.slice';
+
+export {
+    default as presetReducer,
+    fetchPresets,
+    fetchPreset,
+    createPreset,
+    updatePreset,
+    deletePreset,
+    clearCurrentPreset,
+    clearErrors as clearPresetErrors,
+    setFilters as setPresetFilters,
+    resetFilters as resetPresetFilters,
+    setPagination as setPresetPagination,
+    clearAllPresets,
+} from './preset.slice';

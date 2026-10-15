@@ -1,9 +1,9 @@
 # apps/reportplt/services/templates/prebuilt_templates.py
 import json
 from typing import Dict, Any, List, Optional
-from django.db import transaction
+from django.db import transaction, models
 from apps.reportplt.models import ReportTemplate
-from apps.reportplt.constants import ReportType, TemplateType, SectorType, ReportCategory, WidgetType
+from apps.reportplt.constants import ReportType, TemplateType, ReportCategory, WidgetType
 
 class PrebuiltTemplates:
     def __init__(self):
@@ -77,7 +77,6 @@ class PrebuiltTemplates:
             'description': 'Comprehensive executive dashboard with key performance indicators, trends, and strategic insights',
             'template_type': TemplateType.EXECUTIVE,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -152,7 +151,6 @@ class PrebuiltTemplates:
             'description': 'Department-level performance scorecard with KPIs, targets, and achievement status',
             'template_type': TemplateType.DEPARTMENTAL,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -224,7 +222,6 @@ class PrebuiltTemplates:
             'description': 'Detailed KPI performance report with targets, actuals, and variance analysis',
             'template_type': TemplateType.KPI,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -294,7 +291,6 @@ class PrebuiltTemplates:
             'description': 'Strategic mission status report with performance analysis, challenges, and action plans',
             'template_type': TemplateType.MISSION,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -351,7 +347,6 @@ class PrebuiltTemplates:
             'description': 'Compliance status report with regulatory requirements tracking and risk assessment',
             'template_type': TemplateType.COMPLIANCE,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -405,7 +400,6 @@ class PrebuiltTemplates:
             'description': 'Comprehensive trend analysis with month-over-month and year-over-year comparisons',
             'template_type': TemplateType.TREND,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -459,7 +453,6 @@ class PrebuiltTemplates:
             'description': 'Comparative analysis across departments, teams, and individuals',
             'template_type': TemplateType.COMPARATIVE,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -513,7 +506,6 @@ class PrebuiltTemplates:
             'description': 'Performance Improvement Plan tracking with status, progress, and outcomes',
             'template_type': TemplateType.PIP,
             'category': ReportCategory.HR,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -567,7 +559,6 @@ class PrebuiltTemplates:
             'description': 'Social impact report for NGOs with beneficiary metrics and outcome tracking',
             'template_type': TemplateType.CUSTOM,
             'category': ReportCategory.IMPACT,
-            'sector': SectorType.NGO,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -621,7 +612,6 @@ class PrebuiltTemplates:
             'description': 'Commercial performance report with revenue, sales, and financial metrics',
             'template_type': TemplateType.CUSTOM,
             'category': ReportCategory.FINANCIAL,
-            'sector': SectorType.COMMERCIAL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -677,7 +667,6 @@ class PrebuiltTemplates:
             'description': 'Public sector service delivery report with compliance and citizen outcome metrics',
             'template_type': TemplateType.CUSTOM,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.PUBLIC,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -728,30 +717,41 @@ class PrebuiltTemplates:
         }
 
     def seed_prebuilt_templates(self, tenant_id: Optional[str] = None) -> List[ReportTemplate]:
+        from copy import deepcopy
+        from apps.tenant.models import Organization
+        tenant_sector = None
+        if tenant_id:
+            org = Organization.objects.filter(id=tenant_id).first()
+            if org and getattr(org, 'sector', None):
+                tenant_sector = org.sector
+
         with transaction.atomic():
             created = []
             for template_data in self.templates:
-                if tenant_id:
-                    template_data['tenant_id'] = tenant_id
-                else:
-                    template_data['tenant_id'] = None
+                data = deepcopy(template_data)
+                data.pop('sector', None)
+                data['tenant_id'] = tenant_id if tenant_id else None
+                data['sector'] = tenant_sector
                 template, created_flag = ReportTemplate.objects.get_or_create(
-                    name=template_data['name'],
-                    template_type=template_data['template_type'],
+                    name=data['name'],
+                    template_type=data['template_type'],
                     is_system=True,
-                    defaults=template_data
+                    tenant_id=data.get('tenant_id'),
+                    defaults=data
                 )
                 if created_flag:
                     created.append(template)
             return created
 
-    def get_template_by_type_and_sector(self, template_type: str, sector: str) -> Optional[ReportTemplate]:
-        return ReportTemplate.objects.filter(
+    def get_template_by_type_and_sector(self, template_type: str, sector: Optional[str] = None) -> Optional[ReportTemplate]:
+        qs = ReportTemplate.objects.filter(
             template_type=template_type,
-            sector__in=[sector, 'all'],
             is_system=True,
             is_published=True
-        ).order_by('-is_default', '-created_at').first()
+        )
+        if sector:
+            qs = qs.filter(models.Q(sector__code__iexact=sector) | models.Q(sector__name__iexact=sector) | models.Q(sector__isnull=True))
+        return qs.order_by('-is_default', '-created_at').first()
 
     def _backup_execution_report_template(self) -> Dict[str, Any]:
         return {
@@ -759,7 +759,6 @@ class PrebuiltTemplates:
             'description': 'Full operational audit of multi-app backup jobs, compression ratios, SHA-256 checksum verifications, and storage tier distribution',
             'template_type': ReportType.BACKUP_AUDIT,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -794,7 +793,6 @@ class PrebuiltTemplates:
             'description': 'Audits planned vs achieved RTO and RPO targets, DR drill pass rates, and topological recovery order compliance',
             'template_type': ReportType.DR_COMPLIANCE,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -827,7 +825,6 @@ class PrebuiltTemplates:
             'description': 'Reports application endpoint uptime %, response time latency in ms, error rates, and system resource metrics',
             'template_type': ReportType.HEALTH_SLA,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -861,7 +858,6 @@ class PrebuiltTemplates:
             'description': 'Tracks scheduled and emergency maintenance windows, actual vs scheduled downtime, and worker pause events',
             'template_type': ReportType.MAINTENANCE_AUDIT,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -894,7 +890,6 @@ class PrebuiltTemplates:
             'description': 'Audits cryptographic keys, KMS providers, key rotation age (>90 days), and encryption algorithms',
             'template_type': ReportType.KMS_SECURITY,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -927,7 +922,6 @@ class PrebuiltTemplates:
             'description': 'Audit log report tracking all administrative control-plane actions, user roles, IP addresses, and outcomes',
             'template_type': ReportType.SYSTEM_AUDIT,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -959,7 +953,6 @@ class PrebuiltTemplates:
             'description': 'Tracks tenant backup storage allocations, usage byte sizes, quota breach warnings (>80%), and restore limits',
             'template_type': ReportType.TENANT_QUOTA,
             'category': ReportCategory.FINANCIAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -989,7 +982,6 @@ class PrebuiltTemplates:
             'description': 'Aggregates platform risk assessment scores (0-100), risk level distributions, contributing factors, and expiration dates',
             'template_type': ReportType.RISK_MATRIX,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1019,7 +1011,6 @@ class PrebuiltTemplates:
             'description': 'Reports organization onboarding lifecycles, active vs suspended counts, subscription tier distributions, and onboarding rates',
             'template_type': ReportType.TENANT_LIFECYCLE,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1054,7 +1045,6 @@ class PrebuiltTemplates:
             'description': 'Audits tenant resource limit allocations, current usage, 80% warning threshold breaches, and soft/hard ceiling blocks',
             'template_type': ReportType.TENANT_RESOURCE_QUOTA,
             'category': ReportCategory.FINANCIAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1086,7 +1076,6 @@ class PrebuiltTemplates:
             'description': 'Audits tenant database schemas, storage sizes (MB), table counts, active connections, and migration execution histories',
             'template_type': ReportType.TENANT_SCHEMA_HEALTH,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1120,7 +1109,6 @@ class PrebuiltTemplates:
             'description': 'Audits tenant domain verification statuses, primary domain assignments, and SSL certificate expiration countdowns',
             'template_type': ReportType.TENANT_DOMAIN_SSL,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1153,7 +1141,6 @@ class PrebuiltTemplates:
             'description': 'Reports tenant data backup execution history, success vs failure rates, file sizes (MB), and retention expiration',
             'template_type': ReportType.TENANT_BACKUP_AUDIT,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1186,7 +1173,6 @@ class PrebuiltTemplates:
             'description': 'Unified multi-tenant executive dashboard combining organization counts, quota status, schema sizes, SSL risks, and backups',
             'template_type': ReportType.TENANT_EXECUTIVE_SUMMARY,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1220,7 +1206,6 @@ class PrebuiltTemplates:
             'description': 'Reports an individual staff member 12-month performance scorecard, phased targets vs approved actuals, weights, and evidence attachments',
             'template_type': ReportType.KPI_INDIVIDUAL_SCORECARD,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1253,7 +1238,6 @@ class PrebuiltTemplates:
             'description': 'Reports departmental and unit performance rollups, average team scores, and traffic light distribution',
             'template_type': ReportType.KPI_DEPARTMENTAL_HEATMAP,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1285,7 +1269,6 @@ class PrebuiltTemplates:
             'description': 'Audits parent-to-child target cascading integrity, contribution percentages, and breakdown from organization down to individual levels',
             'template_type': ReportType.KPI_CASCADE_TREE,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1316,7 +1299,6 @@ class PrebuiltTemplates:
             'description': 'Audits underperforming KPIs (score < 50%), consecutive red alert months (>=2), open escalations, and PIP recommendations',
             'template_type': ReportType.KPI_RED_ALERTS,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1349,7 +1331,6 @@ class PrebuiltTemplates:
             'description': 'Tracks monthly actual submission compliance (by 5th of month), supervisor approval response rates, rejected entries, and pending queues',
             'template_type': ReportType.KPI_VALIDATION_COMPLIANCE,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1383,7 +1364,6 @@ class PrebuiltTemplates:
             'description': 'Executive overview combining average organization scores, departmental health, target cascading metrics, red alerts, and validation compliance',
             'template_type': ReportType.KPI_EXECUTIVE_SUMMARY,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1417,7 +1397,6 @@ class PrebuiltTemplates:
             'description': 'Visualizes the 4-level org hierarchy (Division > Department > Section > Unit), materialized paths, headcounts per node, and managers per unit',
             'template_type': ReportType.STRUCTURE_ORG_CHART,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1451,7 +1430,6 @@ class PrebuiltTemplates:
             'description': 'Audits all managers for direct vs indirect report counts, highlights those exceeding the 50-direct-reports threshold, and ranks span-of-control distribution',
             'template_type': ReportType.STRUCTURE_SPAN_OF_CONTROL,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1484,7 +1462,6 @@ class PrebuiltTemplates:
             'description': 'Audits all active interim acting assignments, delegation periods, days remaining, and those expiring within 7 days requiring action',
             'template_type': ReportType.STRUCTURE_INTERIM_DELEGATION,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1516,7 +1493,6 @@ class PrebuiltTemplates:
             'description': 'Reports cost center budget allocation splits by category (Operational, Capital, Project, Departmental, Shared) and geographic office hub distribution',
             'template_type': ReportType.STRUCTURE_COST_CENTER_ALLOCATION,
             'category': ReportCategory.FINANCIAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1549,7 +1525,6 @@ class PrebuiltTemplates:
             'description': 'Audits department sensitivity classifications (Public, Internal, Confidential, Restricted) and scope enforcement access levels for HR security compliance',
             'template_type': ReportType.STRUCTURE_SECURITY_SENSITIVITY,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1582,7 +1557,6 @@ class PrebuiltTemplates:
             'description': 'Executive overview of the complete organizational structure: hierarchy counts, employee distribution, managerial coverage, interim delegations, budget allocations, and security posture',
             'template_type': ReportType.STRUCTURE_EXECUTIVE_SUMMARY,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1616,7 +1590,6 @@ class PrebuiltTemplates:
             'description': 'Full user roster by role, department, and login status. Shows active, suspended, verified users, new joiners, and never-logged-in accounts. Scoped per tenant.',
             'template_type': ReportType.ACCOUNTS_USER_DIRECTORY,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1652,7 +1625,6 @@ class PrebuiltTemplates:
             'description': 'Login attempt analysis covering successes, failures, lockouts, failure reasons, and brute-force IP detection over configurable period.',
             'template_type': ReportType.ACCOUNTS_LOGIN_SECURITY,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1688,7 +1660,6 @@ class PrebuiltTemplates:
             'description': 'Multi-factor authentication adoption report: MFA adoption rates by role, unprotected users, device type breakdown, backup code status, and at-risk accounts.',
             'template_type': ReportType.ACCOUNTS_MFA_COMPLIANCE,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1724,7 +1695,6 @@ class PrebuiltTemplates:
             'description': 'Comprehensive audit trail of all accounts actions with action-type breakdown, severity distribution, top actors, security events, and recent audit entries.',
             'template_type': ReportType.ACCOUNTS_AUDIT_TRAIL,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1762,7 +1732,6 @@ class PrebuiltTemplates:
             'description': 'RBAC audit showing role distribution by user count, permission coverage per role, permission categorization by level and category, and role change history.',
             'template_type': ReportType.ACCOUNTS_ROLE_PERMISSION_AUDIT,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1797,7 +1766,6 @@ class PrebuiltTemplates:
             'description': 'Snapshot of all active user sessions: device type, browser, OS breakdown, MFA-verified session rate, trusted devices, and users with multiple concurrent sessions.',
             'template_type': ReportType.ACCOUNTS_SESSION_ACTIVITY,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1834,7 +1802,6 @@ class PrebuiltTemplates:
             'description': 'Password health audit: age bucket distribution (0-30, 30-60, 60-90, 90+ days), forced-change required users, never-changed passwords, and reset activity.',
             'template_type': ReportType.ACCOUNTS_PASSWORD_HYGIENE,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1869,7 +1836,6 @@ class PrebuiltTemplates:
             'description': 'Statistical anomaly detection in user activity (mean+2σ), brute-force IP detection (10+ failures), critical audit events, after-hours access patterns, and permission denial counts.',
             'template_type': ReportType.ACCOUNTS_SECURITY_ANOMALIES,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1905,7 +1871,6 @@ class PrebuiltTemplates:
             'description': 'Executive overview of the complete IAM posture: total users, MFA adoption rate, active sessions, login success rate, password hygiene score, security events, and anomaly count with a calculated security score.',
             'template_type': ReportType.ACCOUNTS_EXECUTIVE_SUMMARY,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1943,7 +1908,6 @@ class PrebuiltTemplates:
             'description': 'Subscription distribution report: active, trialing, past due, and cancelled counts, plan breakdown, billing interval split, MRR, and ARR.',
             'template_type': ReportType.BILLING_SUBSCRIPTION_SUMMARY,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -1979,7 +1943,6 @@ class PrebuiltTemplates:
             'description': 'Financial revenue ledger: gross revenue, VAT tax collected, net revenue, paid vs outstanding invoice breakdown over configurable period.',
             'template_type': ReportType.BILLING_REVENUE_FINANCIAL,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2014,7 +1977,6 @@ class PrebuiltTemplates:
             'description': 'Transaction processing audit: success rate, transaction type breakdown, payment channels (card, bank, mobile money), and recent transactions.',
             'template_type': ReportType.BILLING_PAYMENT_TRANSACTIONS,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2050,7 +2012,6 @@ class PrebuiltTemplates:
             'description': 'Feature consumption metering: users, KPIs, storage MB, API calls, and 80%/90%/100% threshold alert breach tracking across tenants.',
             'template_type': ReportType.BILLING_USAGE_QUOTA_AUDIT,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2085,7 +2046,6 @@ class PrebuiltTemplates:
             'description': 'Dunning recovery audit: retry attempt counts, pending vs recovered retries, past-due subscriptions, and active grace periods.',
             'template_type': ReportType.BILLING_DUNNING_RECOVERY,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2119,7 +2079,6 @@ class PrebuiltTemplates:
             'description': 'Master executive financial dashboard: MRR, ARR, active subscribers, gross revenue, net revenue, payment success rate, dunning recovery rate, and Financial Health Score.',
             'template_type': ReportType.BILLING_EXECUTIVE_SUMMARY,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2157,7 +2116,6 @@ class PrebuiltTemplates:
             'description': 'Individual employee review scorecard: self vs supervisor rating comparison, KPI score, competency score, final rating, and review status.',
             'template_type': ReportType.REVIEWS_INDIVIDUAL_SUMMARY,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2188,7 +2146,6 @@ class PrebuiltTemplates:
             'description': 'Review cycle completion audit: self-assessment submission %, supervisor review approval %, locked final rating %, and department compliance matrix.',
             'template_type': ReportType.REVIEWS_CYCLE_COMPLIANCE,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2222,7 +2179,6 @@ class PrebuiltTemplates:
             'description': 'Tenant-level strategic performance review: overall average score, KPI vs Competency average split, bell-curve score distribution, top/weakest competencies, and department rankings.',
             'template_type': ReportType.REVIEWS_ORGANIZATION_PERFORMANCE,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2257,7 +2213,6 @@ class PrebuiltTemplates:
             'description': 'Calibration session audit: total calibration sessions, completed sessions, total adjustments, score increases vs decreases count, and average score shift.',
             'template_type': ReportType.REVIEWS_CALIBRATION_IMPACT,
             'category': ReportCategory.COMPLIANCE,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2291,7 +2246,6 @@ class PrebuiltTemplates:
             'description': 'Organization-wide PIP tracking: active PIPs, successful vs failed outcomes, action item completion rate %, missed action items, and employee PIP roster.',
             'template_type': ReportType.REVIEWS_PIP_TRACKER,
             'category': ReportCategory.OPERATIONAL,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,
@@ -2325,7 +2279,6 @@ class PrebuiltTemplates:
             'description': 'Master Executive Performance Dashboard: overall score average, review completion rate %, promotion-ready count, active PIP count, PIP success rate %, and calculated Talent Health Score.',
             'template_type': ReportType.REVIEWS_EXECUTIVE_SUMMARY,
             'category': ReportCategory.STRATEGIC,
-            'sector': SectorType.ALL,
             'is_system': True,
             'is_published': True,
             'is_default': True,

@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { FiEye, FiEdit2, FiTrash2, FiCopy, FiCheck, FiStar } from 'react-icons/fi';
 import { TemplateStatusBadge } from './TemplateStatusBadge';
+import { REPORT_TYPE_LABELS } from '../../../config/constants/reportConstants';
 import './templates.css';
 
 export const TemplateTable = ({
@@ -22,30 +23,17 @@ export const TemplateTable = ({
         });
     };
 
-    const getTypeLabel = (type) => {
-        const labels = {
-            executive: 'Executive',
-            departmental: 'Departmental',
-            kpi: 'KPI',
-            mission: 'Mission',
-            compliance: 'Compliance',
-            trend: 'Trend',
-            comparative: 'Comparative',
-            pip: 'PIP',
-            custom: 'Custom',
-        };
-        return labels[type] || type;
+    const getTypeLabel = (type, typeDisplay) => {
+        if (typeDisplay) return typeDisplay;
+        return REPORT_TYPE_LABELS[type] || type || 'Custom';
     };
 
-    const getSectorLabel = (sector) => {
-        const labels = {
-            commercial: 'Commercial',
-            ngo: 'NGO',
-            public: 'Public',
-            consulting: 'Consulting',
-            all: 'All Sectors',
-        };
-        return labels[sector] || sector;
+    const getSectorLabel = (sec, secDisplay) => {
+        if (secDisplay) return secDisplay;
+        if (typeof sec === 'object' && sec) {
+            return sec.name ? `${sec.name}${sec.sector_type ? ` (${sec.sector_type})` : ''}` : sec.code || 'All Sectors';
+        }
+        return sec || 'All Sectors';
     };
 
     return (
@@ -79,9 +67,9 @@ export const TemplateTable = ({
                                 </div>
                             </td>
                             <td>
-                                <span className="template-type-badge">{getTypeLabel(template.template_type)}</span>
+                                <span className="template-type-badge">{getTypeLabel(template.template_type, template.template_type_display)}</span>
                             </td>
-                            <td>{getSectorLabel(template.sector)}</td>
+                            <td>{getSectorLabel(template.sector, template.sector_display)}</td>
                             <td>
                                 <TemplateStatusBadge
                                     isPublished={template.is_published}

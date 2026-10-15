@@ -12,7 +12,7 @@ class ReportGenerationThrottle(SimpleRateThrottle):
     Rate limit for report generation endpoints.
     """
     scope = 'report_generation'
-    rate = '100/hour'
+    rate = '1000/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:
@@ -26,7 +26,7 @@ class ReportGenerationUserThrottle(SimpleRateThrottle):
     Per-user rate limit for report generation.
     """
     scope = 'report_generation_user'
-    rate = '10/hour'
+    rate = '1000/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:
@@ -41,7 +41,7 @@ class ReportGenerationTenantThrottle(SimpleRateThrottle):
     Per-tenant rate limit for report generation.
     """
     scope = 'report_generation_tenant'
-    rate = '50/hour'
+    rate = '5000/hour'
     
     def get_cache_key(self, request, view):
         if request.user and request.user.is_authenticated:

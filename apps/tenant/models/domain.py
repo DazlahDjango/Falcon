@@ -53,6 +53,18 @@ class OrganizationDomain(BaseModel):
     def __str__(self):
         return self.domain
 
+    @property
+    def is_verified(self):
+        return self.status == 'ACTIVE'
+
+    @property
+    def ssl_enabled(self):
+        return bool(self.ssl_issued_at and (not self.ssl_expires_at or self.ssl_expires_at > timezone.now()))
+
+    @property
+    def verification_method(self):
+        return (self.metadata or {}).get('verification_method', '')
+
     def mark_verified(self):
         self.status = 'ACTIVE'
         self.verified_at = timezone.now()

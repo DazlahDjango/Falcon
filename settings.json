@@ -1,0 +1,41 @@
+{
+  "isolation": {
+    "enforce_schema_isolation": true,
+    "connection_pool_max": 20,
+    "idle_connection_timeout_seconds": 300,
+    "rls_enabled": true
+  },
+  "quotas": {
+    "sync_live_counts": true,
+    "warn_threshold_percent": 80,
+    "block_on_exceeded": true,
+    "reconcile_on_usage_read": true
+  },
+  "provisioning": {
+    "auto_provision_on_create": true,
+    "seed_default_structure": true,
+    "notify_on_complete": true
+  },
+  "security": {
+    "require_verified_domain_for_sso": true,
+    "suspend_on_subscription_expiry": true,
+    "audit_admin_actions": true,
+    "mfa_required_for_super_admin": true
+  },
+  "realtime": {
+    "websocket_enabled": true,
+    "push_status_changes": true,
+    "push_quota_warnings": true,
+    "push_resource_usage": true
+  },
+  "branding": {
+    "allow_custom_logo": true,
+    "allow_custom_colors": true,
+    "allow_custom_domains": true
+  },
+  "domains": {
+    "auto_issue_ssl": true,
+    "ssl_renewal_days_before_expiry": 30,
+    "max_custom_domains_per_organization": 10
+  }
+}

@@ -41,10 +41,12 @@ from .objects import (
     ObjectPermission, ObjectOwnerPermission, ObjectTenantPermission,
     ObjectRolePermission, ObjectHierarchyPermission, ObjectManagerPermission
 )
+from .reporting_access import HasReportingAccess
 
 __all__ = [
     'BasePermission', 'AllowAny', 'IsAuthenticated', 'IsAuthenticatedOrReadOnly',
     'IsOwner', 'IsOwnerOrReadOnly', 'IsAdminUser', 'IsAdminOrReadOnly',
+    'HasReportingAccess',
     'ReportPermission', 'ReportViewPermission', 'ReportCreatePermission',
     'ReportEditPermission', 'ReportDeletePermission', 'ReportExportPermission',
     'ReportSchedulePermission', 'ReportGeneratePermission',

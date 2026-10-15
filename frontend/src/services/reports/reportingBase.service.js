@@ -1,15 +1,15 @@
-import { reportingApiClient, withRetry } from '../api';
+import { reportApiClient, withRetry } from '../api';
 import { BaseResourceService } from '../api/BaseResourceService';
 
 class BaseReportingService extends BaseResourceService {
   constructor(resourceName) {
     super(resourceName, {
-      client: reportingApiClient,
+      client: reportApiClient,
       withRetry,
       logLabel: 'Reporting'
     });
   }
 }
 
-export { reportingApiClient as apiClient, withRetry, BaseReportingService };
+export { reportApiClient as apiClient, withRetry, BaseReportingService };
 export default BaseReportingService;

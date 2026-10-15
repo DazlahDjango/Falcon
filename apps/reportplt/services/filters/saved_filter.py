@@ -2,6 +2,7 @@
 import uuid
 from typing import Dict, Any, List, Optional
 from django.db import transaction
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from apps.reportplt.models import ReportFilter
 from apps.reportplt.exceptions import FilterError, ReportPermissionError

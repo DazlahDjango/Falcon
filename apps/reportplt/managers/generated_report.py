@@ -1,6 +1,6 @@
-from apps.reportplt.managers.base import ReportingBaseManager
+from .base import SoftDeleteManager
 
-class GeneratedReportManager(ReportingBaseManager):
+class GeneratedReportManager(SoftDeleteManager):
     def completed(self):
         return self.get_queryset().filter(status='completed')
 

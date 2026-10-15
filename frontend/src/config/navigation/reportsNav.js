@@ -23,6 +23,9 @@ import {
   FiEye,
   FiUser,
   FiAlertTriangle,
+  FiSend,
+  FiBookmark,
+  FiFilter,
 } from 'react-icons/fi';
 
 import { REPORT_ROUTES } from '../constants/reportRouteConstants';
@@ -36,6 +39,7 @@ export const REPORTS_SUPER_ADMIN_NAV_GROUPS = {
     { path: REPORT_ROUTES.REPORT_CREATE, name: 'Create Report', icon: FiPlus },
     { path: REPORT_ROUTES.TEMPLATES, name: 'Template Library', icon: FiCopy },
     { path: REPORT_ROUTES.TEMPLATE_CREATE, name: 'Create Template', icon: FiPlus },
+    { path: REPORT_ROUTES.PRESETS, name: 'Saved Presets', icon: FiBookmark },
   ],
   reports_dashboards: [
     { path: REPORT_ROUTES.DASHBOARDS, name: 'Dashboards Console', icon: FiGrid },
@@ -44,13 +48,14 @@ export const REPORTS_SUPER_ADMIN_NAV_GROUPS = {
   ],
   reports_automation: [
     { path: REPORT_ROUTES.SCHEDULES, name: 'Scheduled Jobs', icon: FiClock },
+    { path: REPORT_ROUTES.DISTRIBUTIONS, name: 'Distribution Lists', icon: FiSend },
     { path: REPORT_ROUTES.EXECUTIONS, name: 'Execution Logs', icon: FiActivity },
     { path: REPORT_ROUTES.EXPORTS, name: 'Exports Manager', icon: FiDownload },
   ],
   reports_governance: [
     { path: REPORT_ROUTES.ANALYTICS, name: 'Platform Analytics', icon: FiBarChart2 },
     { path: REPORT_ROUTES.SHARES, name: 'Shared Links', icon: FiShare2 },
-    { path: REPORT_ROUTES.FILTERS, name: 'Global Filters', icon: FiSliders },
+    { path: REPORT_ROUTES.FILTERS, name: 'Global Filters', icon: FiFilter },
     { path: REPORT_ROUTES.AUDITS, name: 'Report Audit Logs', icon: FiShield },
     { path: REPORT_ROUTES.ADMIN_SETTINGS, name: 'Platform Settings', icon: FiSettings },
   ],
@@ -79,15 +84,18 @@ export const REPORTS_CLIENT_ADMIN_NAV_GROUPS = {
     { path: REPORT_ROUTES.REPORTS, name: 'Reports Directory', icon: FiFileText },
     { path: REPORT_ROUTES.REPORT_CREATE, name: 'Define New Report', icon: FiPlus },
     { path: REPORT_ROUTES.MY_REPORTS, name: 'My Saved Reports', icon: FiUser },
-    { path: REPORT_ROUTES.FILTERS, name: 'Saved Filters', icon: FiSliders },
+    { path: REPORT_ROUTES.FILTERS, name: 'Saved Filters', icon: FiFilter },
+    { path: REPORT_ROUTES.PRESETS, name: 'Filter Presets', icon: FiBookmark },
   ],
   reports_templates: [
     { path: REPORT_ROUTES.TEMPLATES, name: 'Report Templates', icon: FiCopy },
     { path: REPORT_ROUTES.TEMPLATE_PREBUILT, name: 'Prebuilt Gallery', icon: FiLayers },
+    { path: REPORT_ROUTES.WIDGETS, name: 'Custom Widgets', icon: FiSliders },
   ],
   reports_automation: [
     { path: REPORT_ROUTES.SCHEDULES, name: 'Automated Schedules', icon: FiClock },
     { path: REPORT_ROUTES.SCHEDULE_CREATE, name: 'New Schedule', icon: FiPlus },
+    { path: REPORT_ROUTES.DISTRIBUTIONS, name: 'Distribution Lists', icon: FiSend },
     { path: REPORT_ROUTES.EXPORTS, name: 'Export Center', icon: FiDownload },
     { path: REPORT_ROUTES.EXECUTIONS, name: 'Execution History', icon: FiActivity },
   ],
@@ -100,7 +108,7 @@ export const REPORTS_CLIENT_ADMIN_NAV_GROUPS = {
 
 export const REPORTS_CLIENT_ADMIN_GROUP_LABELS = {
   reports_management: '📋 Report Management',
-  reports_templates: '📑 Templates Gallery',
+  reports_templates: '📑 Templates & Widgets',
   reports_automation: '⏱️ Schedules & Delivery',
   reports_analytics: '📈 Analytics & Audits',
 };
@@ -154,10 +162,13 @@ export const REPORTS_MANAGER_NAV_GROUPS = {
     { path: REPORT_ROUTES.REPORTS, name: 'Team Reports', icon: FiFileText },
     { path: REPORT_ROUTES.REPORT_CREATE, name: 'Create Team Report', icon: FiPlus },
     { path: REPORT_ROUTES.MY_REPORTS, name: 'My Reports', icon: FiUser },
+    { path: REPORT_ROUTES.FILTERS, name: 'Saved Filters', icon: FiFilter },
+    { path: REPORT_ROUTES.PRESETS, name: 'Filter Presets', icon: FiBookmark },
   ],
   reports_schedules: [
     { path: REPORT_ROUTES.SCHEDULES, name: 'Scheduled Reports', icon: FiClock },
     { path: REPORT_ROUTES.SCHEDULE_CREATE, name: 'Schedule Report', icon: FiPlus },
+    { path: REPORT_ROUTES.DISTRIBUTIONS, name: 'Distribution Lists', icon: FiSend },
     { path: REPORT_ROUTES.MY_EXPORTS, name: 'My Exports', icon: FiDownload },
   ],
   reports_analytics: [
@@ -189,9 +200,12 @@ export const REPORTS_CHAMPION_NAV_GROUPS = {
     { path: REPORT_ROUTES.TEMPLATES, name: 'Template Library', icon: FiCopy },
     { path: REPORT_ROUTES.TEMPLATE_CREATE, name: 'Build Template', icon: FiPlus },
     { path: REPORT_ROUTES.WIDGETS, name: 'Custom Widgets', icon: FiSliders },
+    { path: REPORT_ROUTES.FILTERS, name: 'Saved Filters', icon: FiFilter },
+    { path: REPORT_ROUTES.PRESETS, name: 'Saved Presets', icon: FiBookmark },
   ],
   reports_automation: [
     { path: REPORT_ROUTES.SCHEDULES, name: 'Automated Schedules', icon: FiClock },
+    { path: REPORT_ROUTES.DISTRIBUTIONS, name: 'Distribution Lists', icon: FiSend },
     { path: REPORT_ROUTES.EXECUTIONS, name: 'Execution History', icon: FiActivity },
     { path: REPORT_ROUTES.EXPORTS, name: 'Export Center', icon: FiDownload },
   ],
@@ -221,6 +235,7 @@ export const REPORTS_STAFF_NAV_GROUPS = {
   reports_my: [
     { path: REPORT_ROUTES.MY_DASHBOARDS, name: 'My Dashboard', icon: FiGrid },
     { path: REPORT_ROUTES.MY_REPORTS, name: 'My Reports', icon: FiUser },
+    { path: REPORT_ROUTES.PRESETS, name: 'My Presets', icon: FiBookmark },
   ],
   reports_view: [
     { path: REPORT_ROUTES.REPORTS, name: 'Browse Reports', icon: FiFileText },

@@ -41,13 +41,21 @@ class ReportViewPermission(ReportPermission):
             return False
         if request.user.role in [UserRoles.SUPER_ADMIN, UserRoles.CLIENT_ADMIN, UserRoles.EXECUTIVE]:
             return True
-        if obj.owner_id == request.user.id:
+        if hasattr(obj, 'user_id') and obj.user_id == request.user.id:
             return True
-        if obj.is_public:
+        if hasattr(obj, 'triggered_by_id') and obj.triggered_by_id == request.user.id:
             return True
-        if request.user.role in obj.allowed_roles:
+        if hasattr(obj, 'exported_by_id') and obj.exported_by_id == request.user.id:
             return True
-        if request.user.department and request.user.department in obj.allowed_departments:
+        if hasattr(obj, 'owner_id') and obj.owner_id == request.user.id:
+            return True
+        if getattr(obj, 'is_public', False):
+            return True
+        if hasattr(obj, 'allowed_roles') and obj.allowed_roles and request.user.role in obj.allowed_roles:
+            return True
+        if hasattr(obj, 'allowed_departments') and obj.allowed_departments and request.user.department and request.user.department in obj.allowed_departments:
+            return True
+        if request.method in SAFE_METHODS and getattr(obj, 'is_shared', False):
             return True
         return False
 

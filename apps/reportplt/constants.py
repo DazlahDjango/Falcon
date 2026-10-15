@@ -120,6 +120,7 @@ class ReportType:
         (REVIEWS_PIP_TRACKER, _('Performance Improvement Plan (PIP) Tracker')),
         (REVIEWS_EXECUTIVE_SUMMARY, _('Strategic Performance & Talent Executive Summary')),
     ]
+    choices = CHOICES
 
 class ReportStatus:
     DRAFT = 'draft'
@@ -136,6 +137,20 @@ class ReportStatus:
         (FAILED, _('Failed')),
         (ARCHIVED, _('Archived')),
     ]
+    choices = CHOICES
+
+class GenerationStatus:
+    PENDING = 'pending'
+    PROCESSING = 'processing'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+    CHOICES = [
+        (PENDING, _('Pending')),
+        (PROCESSING, _('Processing')),
+        (COMPLETED, _('Completed')),
+        (FAILED, _('Failed')),
+    ]
+    choices = CHOICES
 
 class ReportFormat:
     PDF = 'pdf'
@@ -154,6 +169,9 @@ class ReportFormat:
         (HTML, _('HTML')),
         (XML, _('XML')),
     ]
+    choices = CHOICES
+
+ExportFormat = ReportFormat
 
 class ReportCategory:
     OPERATIONAL = 'operational'
@@ -164,6 +182,8 @@ class ReportCategory:
     IMPACT = 'impact'
     PROJECT = 'project'
     CUSTOM = 'custom'
+    PRODUCTION = 'production'
+    SYSTEM = 'system'
     CHOICES = [
         (OPERATIONAL, _('Operational')),
         (STRATEGIC, _('Strategic')),
@@ -173,7 +193,23 @@ class ReportCategory:
         (IMPACT, _('Impact')),
         (PROJECT, _('Project')),
         (CUSTOM, _('Custom')),
+        (PRODUCTION, _('Production')),
+        (SYSTEM, _('System')),
     ]
+    choices = CHOICES
+
+class DataSensitivityLevel:
+    INTERNAL = 'internal'
+    CONFIDENTIAL = 'confidential'
+    RESTRICTED = 'restricted'
+    PUBLIC = 'public'
+    CHOICES = [
+        (INTERNAL, _('Internal')),
+        (CONFIDENTIAL, _('Confidential')),
+        (RESTRICTED, _('Restricted')),
+        (PUBLIC, _('Public')),
+    ]
+    choices = CHOICES
 
 class ScheduleFrequency:
     DAILY = 'daily'
@@ -194,28 +230,10 @@ class ScheduleFrequency:
         (ANNUAL, _('Annual')),
         (CUSTOM, _('Custom')),
     ]
+    choices = CHOICES
 
-class TemplateType:
-    EXECUTIVE = 'executive'
-    DEPARTMENTAL = 'departmental'
-    KPI = 'kpi'
-    MISSION = 'mission'
-    COMPLIANCE = 'compliance'
-    TREND = 'trend'
-    COMPARATIVE = 'comparative'
-    PIP = 'pip'
-    CUSTOM = 'custom'
-    CHOICES = [
-        (EXECUTIVE, _('Executive Dashboard')),
-        (DEPARTMENTAL, _('Departmental Scorecard')),
-        (KPI, _('KPI Report')),
-        (MISSION, _('Mission Status Report')),
-        (COMPLIANCE, _('Compliance Report')),
-        (TREND, _('Trend Analysis')),
-        (COMPARATIVE, _('Comparative Analysis')),
-        (PIP, _('PIP Report')),
-        (CUSTOM, _('Custom Template')),
-    ]
+class TemplateType(ReportType):
+    pass
 
 class ReportDataSource:
     KPI = 'kpi'
@@ -240,6 +258,7 @@ class ReportDataSource:
         (ACCOUNTS, _('Accounts & Security Data')),
         (BILLING, _('Billing & Financial Data')),
     ]
+    choices = CHOICES
 
 class SectorType:
     COMMERCIAL = 'commercial'
@@ -254,6 +273,7 @@ class SectorType:
         (CONSULTING, _('Consulting')),
         (ALL, _('All Sectors')),
     ]
+    choices = CHOICES
 
 class DashboardType:
     EXECUTIVE = 'executive'
@@ -268,6 +288,7 @@ class DashboardType:
         (PERSONAL, _('Personal Dashboard')),
         (CUSTOM, _('Custom Dashboard')),
     ]
+    choices = CHOICES
 
 class WidgetType:
     KPI = 'kpi'
@@ -308,6 +329,7 @@ class WidgetType:
         (COMPLIANCE, _('Compliance Status')),
         (CUSTOM, _('Custom Widget')),
     ]
+    choices = CHOICES
 
 class FilterType:
     DATE_RANGE = 'date_range'
@@ -328,6 +350,7 @@ class FilterType:
         (HIERARCHY, _('Hierarchical')),
         (CUSTOM, _('Custom')),
     ]
+    choices = CHOICES
 
 class ShareType:
     INTERNAL = 'internal'
@@ -338,6 +361,7 @@ class ShareType:
         (EXTERNAL, _('External Share')),
         (PUBLIC, _('Public Link')),
     ]
+    choices = CHOICES
 
 class SharePermission:
     VIEW = 'view'
@@ -350,6 +374,7 @@ class SharePermission:
         (EDIT, _('View, Comment & Edit')),
         (EXPORT, _('View, Comment, Edit & Export')),
     ]
+    choices = CHOICES
 
 class AuditAction:
     VIEW = 'view'
@@ -384,6 +409,9 @@ class AuditAction:
         (LOGIN, _('Login')),
         (LOGOUT, _('Logout')),
     ]
+    choices = CHOICES
+
+AuditActionType = AuditAction
 
 class ExecutionStatus:
     PENDING = 'pending'
@@ -400,6 +428,7 @@ class ExecutionStatus:
         (CANCELLED, _('Cancelled')),
         (TIMEOUT, _('Timeout')),
     ]
+    choices = CHOICES
 
 class DeliveryMethod:
     DOWNLOAD = 'download'
@@ -412,6 +441,7 @@ class DeliveryMethod:
         (S3, _('S3 Storage')),
         (WEBHOOK, _('Webhook')),
     ]
+    choices = CHOICES
 
 class DataSource:
     KPI = 'kpi'
@@ -430,6 +460,7 @@ class DataSource:
         (CONFIGS, _('System Configs Data')),
         (TENANT, _('Tenant Platform Data')),
     ]
+    choices = CHOICES
 
 DEFAULT_REPORT_CONFIG = {
     'page_size': 'A4',
